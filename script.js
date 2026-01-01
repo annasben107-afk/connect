@@ -17,35 +17,52 @@ function createBoard() {
             cell.classList.add('cell');
             cell.dataset.row = row;
             cell.dataset.col = col;
-            cell.addEventListener('click', () => handleCellClick(col));
+            // We handle clicks on the board and determine the column
             boardElement.appendChild(cell);
         }
     }
+    boardElement.addEventListener('click', handleBoardClick);
 }
 
-function handleCellClick(col) {
+function handleBoardClick(e) {
     if (gameOver) return;
+    
+    const target = e.target.closest('.cell');
+    if (!target) return;
+
+    const col = parseInt(target.dataset.col);
 
     for (let row = ROWS - 1; row >= 0; row--) {
         if (board[row][col] === 0) {
             board[row][col] = currentPlayer;
             const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
-            cell.classList.add(`player${currentPlayer}`);
+            
+            const piece = document.createElement('div');
+            piece.classList.add('piece', `player${currentPlayer}`);
+            cell.appendChild(piece);
 
-            if (checkWin(row, col)) {
-                statusElement.textContent = `Player ${currentPlayer} Wins!`;
-                gameOver = true;
-                return;
-            }
+            // Trigger the drop animation
+            setTimeout(() => {
+                piece.classList.add('drop');
+            }, 10);
+            
+            // Check for win/draw after animation
+            setTimeout(() => {
+                if (checkWin(row, col)) {
+                    statusElement.textContent = `Player ${currentPlayer} Wins!`;
+                    gameOver = true;
+                    return;
+                }
 
-            if (checkDraw()) {
-                statusElement.textContent = "It's a Draw!";
-                gameOver = true;
-                return;
-            }
+                if (checkDraw()) {
+                    statusElement.textContent = "It's a Draw!";
+                    gameOver = true;
+                    return;
+                }
 
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            statusElement.textContent = `Player ${currentPlayer}'s Turn (${currentPlayer === 1 ? 'Red' : 'Yellow'})`;
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                statusElement.textContent = `Player ${currentPlayer}'s Turn (${currentPlayer === 1 ? 'Red' : 'Yellow'})`;
+            }, 400); // Should be slightly longer than the animation time
             return;
         }
     }
